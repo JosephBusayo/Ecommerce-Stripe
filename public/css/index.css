@@ -1,0 +1,9 @@
+body{
+    background-color: #000;
+    color: #fff;
+}
+
+form{
+    display: grid;
+    place-content: center;
+}
