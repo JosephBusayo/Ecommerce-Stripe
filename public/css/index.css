@@ -6,4 +6,8 @@ body{
 form{
     display: grid;
     place-content: center;
+    gap: 10px;
+}
+form > input, button{
+    padding: 20px;
 }
