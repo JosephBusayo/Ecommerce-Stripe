@@ -21,7 +21,10 @@ router.post("/onboard-user", async (req, res) => {
         transfers: { requested: true },
       },
     });
+    // acct_1L4OBOQYL6eN3xrM
+
     // setting account Id to session
+    console.log(account.id);
     req.session.accountID = account.id;
     res.redirect("/onboard-user/refresh");
   } catch (err) {
@@ -64,20 +67,49 @@ router.get("/onboard-user/refresh", async (req, res) => {
 
 router.get("/success", (req, res) => {
   console.log(req.session);
-  res.status(200).json({ message: "successful" });
+  res
+    .status(200)
+    .json({ message: "Onboarding successful, Please Close The Tab" });
 });
 
-// router.get("/stripe", async (req, res) => {
-//   try {
-//     const accounts = await stripe.accounts.list({
-//       limit: 9,
-//     });
-//     const mapped = accounts.forEach((account) => account.id);
-//     res.json({ stripe: mapped });
-//   } catch (err) {
-//     res.status(500).json({
-//       error: err.message,
-//     });
-//   }
-// });
+router.get("/stripe", async (req, res) => {
+  const { acct } = req.body;
+  try {
+    const account = await stripe.accounts.retrieve(acct);
+
+    res.json(account);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+router.delete("/stripe", async (req, res) => {
+  const { acct } = req.body;
+  try {
+    const deleted = await stripe.accounts.del(acct);
+
+    res.json(deleted);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+router.get("/all", async (_req, res) => {
+  try {
+    const accounts = await stripe.accounts.list({
+      limit: 20,
+    });
+
+    res.json(accounts.data);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 module.exports = router;
