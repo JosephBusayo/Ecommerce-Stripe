@@ -11,6 +11,9 @@ router.get("/", (_req, res) => {
 
 router.post("/onboard-user", async (req, res) => {
   const { email } = req.body;
+  if (email == "") {
+    res.redirect("/");
+  }
   try {
     const account = await stripe.accounts.create({
       type: "custom",
