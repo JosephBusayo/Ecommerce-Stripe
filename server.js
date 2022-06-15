@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 require("dotenv").config();
 
 const indexRoute = require("./routes/routes.js");
+const checkoutRoute = require("./routes/others.js");
 
 // git remote add origin https://github.com/tylerjusfly/Ecommerce-Stripe.git
 
@@ -12,6 +13,7 @@ const port = process.env.PORT || 4242;
 
 app.use(express.static("public"));
 app.use("/css", express.static(__dirname + "public/css"));
+app.use(express.json());
 
 app.use(
   session({
@@ -31,5 +33,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/", indexRoute);
+app.use("/checkout", checkoutRoute);
 
 app.listen(port, () => console.log(`Node server listening on port ${port}!`));

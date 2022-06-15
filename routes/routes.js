@@ -10,24 +10,10 @@ router.get("/", (_req, res) => {
 });
 
 router.post("/onboard-user", async (req, res) => {
-  const { email } = req.body;
-  if (email == "") {
-    res.redirect("/");
-  }
   try {
-    const account = await stripe.accounts.create({
-      type: "custom",
-      country: "US",
-      email: email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-    });
-    // acct_1L4OBOQYL6eN3xrM
+    const account = await stripe.accounts.create({ type: "standard" });
 
     // setting account Id to session
-    console.log(account.id);
     req.session.accountID = account.id;
     res.redirect("/onboard-user/refresh");
   } catch (err) {
@@ -75,6 +61,29 @@ router.get("/success", (req, res) => {
     .json({ message: "Onboarding successful, Please Close The Tab" });
 });
 
+router.get("/succesful", (req, res) => {
+  const path = resolve("public" + "/success.html");
+  res.sendFile(path);
+});
+router.get("/failure", (req, res) => {
+  const path = resolve("public" + "/failure.html");
+  res.sendFile(path);
+});
+
+router.get("/mybalance", (req, res) => {
+  stripe.balance.retrieve(function (err, balance) {
+    // asynchronously called
+    if (err) {
+      res.json(err);
+    } else {
+      res.json(balance);
+    }
+  });
+});
+
+//Handle users that haven’t completed onboarding
+// https://stripe.com/docs/connect/enable-payment-acceptance-guide?platform=web#handle-incomplete-onboarding
+
 router.get("/stripe", async (req, res) => {
   const { acct } = req.body;
   try {
@@ -106,8 +115,32 @@ router.get("/all", async (_req, res) => {
     const accounts = await stripe.accounts.list({
       limit: 20,
     });
+    // const mappedAcct = accounts.data.map((data) => {
+    //   return {
+    //     id: data.id,
+    //     country: data.business_profile.support_address.country,
+    //     email: data.email,
+    //     bank_account: data.external_accounts.data,
+    //   };
+    // });
 
     res.json(accounts.data);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+router.get("/checkAccount", async (req, res) => {
+  const { acct } = req.body;
+  try {
+    const accountBankAccounts = await stripe.accounts.listExternalAccounts(
+      acct,
+      { object: "bank_account", limit: 3 }
+    );
+
+    res.json(accountBankAccounts);
   } catch (err) {
     res.status(500).json({
       error: err.message,
